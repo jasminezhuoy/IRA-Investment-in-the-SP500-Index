@@ -1,0 +1,46 @@
+---
+title: "Untitled"
+author: "Leila Lei"
+date: "8/6/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+rm(list=ls())
+
+```
+
+
+```{r}
+## sp: 1926/01/30-2019/12/31, monthly
+sp = read.csv("~/Desktop/Accrue/datasets/sp500 returns.csv")
+## inf.crsp: 1926/01/30-2019/12/31, monthly
+inf.crsp = read.csv("~/Desktop/Accrue/datasets/inflation-crsp.csv")
+## inf.cpi: 1913 Jan-2014 Jun, yearly
+inf.cpi = read.csv("~/Desktop/Accrue/datasets/Inflation-CPI_clean.csv")
+
+sp = sp[-1,1:3]
+colnames(sp) = c("sp.t", "GrossReturn", "PriceReturn")
+sp$GrossReturn = sp$GrossReturn+1
+sp$PriceReturn = sp$PriceReturn+1
+
+inf.crsp = inf.crsp[-1,1:2]
+colnames(inf.crsp) = c("inf.crsp.t", "inf.crsp")
+inf.crsp$inf.crsp = inf.crsp$inf.crsp+1
+
+## total: 1926/03/31-2019/12/31, 1126 rows
+total = cbind(sp,inf.crsp)[c(-1,-2),]
+total
+```
+
+
+```{r}
+total = total %>% mutate(adjusted.GR = GrossReturn*cumprod(inf.crsp)-1) %>% mutate(adjusted.PR = PriceReturn*cumprod(inf.crsp)-1)
+## first row gives incorrect adjusted value
+total = total[-1,]
+write.csv(total, file="~/Desktop/Accrue/datasets/inflation adjusted returns.csv")
+
+a=read.csv("~/Desktop/Accrue/datasets/inflation adjusted returns.csv")
+a
+```
