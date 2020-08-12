@@ -1,0 +1,55 @@
+---
+title: "Real value of different portfolios to reach $1m in 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+library(dplyr)
+library(ggplot2)
+setwd("C:\\Users\\juyil\\Dropbox\\Study\\GitHub\\How-to-Become-a-Millionnaire\\datasets")
+return = read.csv("Inflation_Adjusted_Return.csv")
+```
+
+### Inflation measures: CPI, CPIC, PPI
+### Return types: GR(gross return), PR(price return)
+
+```{r, echo=FALSE}
+measures = c("CPI", "CPIC", "PPI")
+return_types = c("GR", "PR") ##GR: gross return, PR: price return
+for (measure in measures){
+  for (return_type in return_types){
+    return[nrow(return),ncol(return)+1] = 1000000 ## To reach 1m after 2019 Dec
+    names(return)[ncol(return)] = paste0(measure,"_",return_type,"_","portfolio")
+  }
+}
+return = return[seq(dim(return)[1],1),]
+
+for (i in 14:19){
+  for (j in 2:nrow(return)){
+    if (i==14 | i==15){ return[j,i]=return[j-1,i]/(1+return[j,i-8]) }
+    if (i==16 | i==17){ return[j,i]=return[j-1,i]/(1+return[j,i-7]) }
+    if (i==18 | i==19){ return[j,i]=return[j-1,i]/(1+return[j,i-6]) }
+  }
+}
+
+return = return %>% mutate(Time=paste0(Year,'/',sprintf("%02d", return$Month),'/',01))
+return$Time = as.Date(return$Time, format = "%Y/%m/%d")
+return = return[seq(dim(return)[1],1),]
+return = na.omit(return)
+```
+
+
+```{r, fig.height=3.5, fig.width=8, echo=FALSE}
+par(mfrow=c(2,2))
+for (col in 14:19){
+  # plot(x=return[ncol(return)], y=return[col], type="l")
+  p=ggplot(return)+
+    geom_line(aes_string(x = names(return)[20], y = names(return)[col]))+
+    scale_x_date(date_breaks = "10 years")+
+    labs(title=names(return)[col])+
+    ylab("Portfolio real value")
+    
+  print(p)
+}
+```
