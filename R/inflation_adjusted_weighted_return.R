@@ -35,5 +35,5 @@ adjusted_total <- CPI_SP %>%
   left_join(CPIC_SP, by = c('Year', 'Month', 'GrossReturn', 'PriceReturn')) %>%
   left_join(PPI_SP, by = c('Year', 'Month', 'GrossReturn', 'PriceReturn'))
 
-# write.csv(adjusted_total, file="./datasets/Inflation_Adjusted_Return.csv", row.names = F)  
+# write.csv(adjusted_total, file="./datasets/Inflation_Adjusted_Weighted_Return.csv", row.names = F)  
   
