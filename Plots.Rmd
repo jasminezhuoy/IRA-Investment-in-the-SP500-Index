@@ -7,8 +7,9 @@ output: pdf_document
 rm(list=ls())
 library(dplyr)
 library(ggplot2)
-setwd("C:\\Users\\juyil\\Dropbox\\Study\\GitHub\\How-to-Become-a-Millionnaire\\datasets")
-return = read.csv("Inflation_Adjusted_Return.csv")
+library(tidyr)
+knitr::opts_knit$set(root.dir = "C:\\Users\\juyil\\Dropbox\\Study\\GitHub\\How-to-Become-a-Millionnaire")
+return = read.csv("datasets\\Inflation_Adjusted_Return.csv")
 ```
 
 ### Inflation measures: CPI, CPIC, PPI
@@ -41,6 +42,7 @@ return = na.omit(return)
 
 
 ```{r, fig.height=3.5, fig.width=8, echo=FALSE}
+## Plot
 par(mfrow=c(2,2))
 for (col in 14:19){
   # plot(x=return[ncol(return)], y=return[col], type="l")
@@ -53,3 +55,79 @@ for (col in 14:19){
   print(p)
 }
 ```
+
+
+### Time taken from $0 to $1m
+```{r, echo=FALSE}
+for (measure in measures){
+  for (return_type in return_types){
+    return[1,ncol(return)+1] = 0 ## To reach 1m after 2019 Dec
+    names(return)[ncol(return)] = paste0(measure,"_",return_type,"_","t")
+  }
+}
+```
+
+```{r, eval=FALSE, include=FALSE}
+ptm = proc.time()
+for (col in 21:26){
+  for (i in 1:nrow(return)){
+    ct = 0
+    portfolio_value = 0
+    temp = i
+    fulfiled = T
+    while (portfolio_value<1000000){
+      if (temp==1){
+        portfolio_value = portfolio_value+500
+        temp = temp+1
+        # print(paste('ct:',ct,'temp:', temp,'portfolio:', portfolio_value))
+      } else if (temp>nrow(return)){
+        fulfiled = F
+        break
+      } else {
+        if (col==21|col==22){portfolio_value = (portfolio_value+500)*(1+return[temp-1,col-15])}
+        else if (col==23|col==24){portfolio_value = (portfolio_value+500)*(1+return[temp-1,col-14])}
+        else if (col==25|col==26){portfolio_value = (portfolio_value+500)*(1+return[temp-1,col-13])}
+        temp = temp+1
+        # print(paste('ct:',ct,'temp:', temp,'portfolio:', portfolio_value))
+      }
+      ct = ct+1
+    }
+    if (fulfiled){return[i,col] = ct} else {return[i,col] = NA}
+    print(paste("Portfolio:",col,"Time:",return$Time[i],"t:",ct, "Time elapsed:", as.numeric(proc.time()-ptm)[3]))
+  }
+}
+
+save(return, file="Time to 1m.RData")
+```
+
+## Plot time for different portfolios to reach $1m
+Red vertical line represents the mean time for a portfolio to reach $1m
+```{r, fig.height=3.5, fig.width=8, echo=FALSE}
+load("Time to 1m.RData")
+## Plot
+par(mfrow=c(2,2))
+for (col in 21:26){
+  p=ggplot(return, aes_string(return[,col]))+
+    geom_histogram(fill=I("lightblue"), col=I("blue"), binwidth = 12)+
+    labs(title=names(return)[col])+
+    xlab("Time to reach $1m in months")+
+    geom_vline(aes(xintercept = mean(return[,col],na.rm = TRUE)),col='red',size=2)+
+    theme_minimal()
+    
+  print(p)
+}
+
+
+return.temp = return %>% 
+  gather(Portfolio, t, c('CPI_GR_t','CPI_PR_t','CPIC_GR_t','CPIC_PR_t','PPI_GR_t','PPI_PR_t')) %>%
+  select(Portfolio, t)
+p = ggplot(return.temp, aes(x=Portfolio, y=t)) + 
+    geom_boxplot(notch=TRUE,fill=I("lightblue"), col=I("blue"))+
+    xlab("Time to $1m in months")+
+    theme_minimal()+
+    labs(title="Time to $1m for different portfolio&inflation adjustment combinations")
+print(p)
+```
+
+
+
