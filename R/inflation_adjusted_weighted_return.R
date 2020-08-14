@@ -31,10 +31,12 @@ Inf_Adj <- function(return, inf){
 CPI_SP <- Inf_Adj(sp.return, CPI_rate)
 CPIC_SP <- Inf_Adj(sp.return, CPIC_rate)
 PPI_SP <- Inf_Adj(sp.return, PPI_rate)
+PCE_SP <- Inf_Adj(sp.return, PCE_rate)
 
 adjusted_total <- CPI_SP %>%
   left_join(CPIC_SP, by = c('Year', 'Month', 'GrossReturn', 'PriceReturn')) %>%
-  left_join(PPI_SP, by = c('Year', 'Month', 'GrossReturn', 'PriceReturn'))
+  left_join(PPI_SP, by = c('Year', 'Month', 'GrossReturn', 'PriceReturn')) %>%
+  left_join(PCE_SP, by = c('Year', 'Month', 'GrossReturn', 'PriceReturn'))
 
 # write.csv(adjusted_total, file="./datasets/Inflation_Adjusted_Return.csv", row.names = F)  
   
