@@ -13,6 +13,7 @@ sp.return <- data.frame(Year = as.integer(substr(sp$Date,1,4)),
 # CPI_rate: 1913-2020
 # CPIC_rate: 1957-2020
 # PPI_rate: 1913-2020
+# PCE_rate: 1959-2020
 
 Inf_Adj <- function(return, inf){
   ratename <- colnames(inf)[3]

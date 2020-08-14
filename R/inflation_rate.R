@@ -21,14 +21,14 @@ CPIC_index <- data.frame(Year = CPIC_index$Year,
 PPI_index <- read.csv("./datasets/inflation-PPI.csv")
 PPI_index <- data.frame(Year = year(as.Date(PPI_index$DATE)),
                         Month = month(as.Date(PPI_index$DATE)),
-                        PPI = PPI[,2])
+                        PPI = PPI_index[,2])
 
 # PCE: https://apps.bea.gov/iTable/iTable.cfm?reqid=19&step=2#reqid=19&step=2&isuri=1&1921=survey
 # 1959 Jan - 2020 Jun, monthly
 PCE_index <- read.csv("./datasets/inflation-PCE.csv")
 PCE_index <- data.frame(Year = year(as.Date(PCE_index$DATE)),
                         Month = month(as.Date(PCE_index$DATE)),
-                        PCE = PCE[,2])
+                        PCE = PCE_index[,2])
 
 # calculate monthly inflation rate
 ## input data.frame should be (Year, Month, Index)
