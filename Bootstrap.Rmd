@@ -1,0 +1,71 @@
+---
+title: "Bootstraping"
+output: pdf_document
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+source("R/inflation_adjusted_weighted_return.R")
+library(zoo)
+library(ggplot2)
+
+adjusted_total <- adjusted_total[adjusted_total$Year>1963,]
+
+adjusted_total$Time <- as.yearmon(paste0(adjusted_total$Month, '/', adjusted_total$Year), format = '%m/%Y')
+
+CPI_GR <- data.frame(Time = adjusted_total$Time, 
+                     CPI_adjusted_GR = adjusted_total$CPI_adjusted_GR)
+
+n <- dim(CPI_GR)[1]
+
+Cal_Port <- function(df, rename, Target = 1000){
+  n <- dim(df)[1]
+  poname <- paste0(rename, '_Portfolio')
+  df[n,poname] <- Target
+  for (i in 1:(n-1)){
+    df[n-i,poname] <- df[n-i+1,poname]/(1+df[n-i+1,rename])
+  }
+  return(df)
+}
+
+CPI_GR_Port <- Cal_Port(CPI_GR, "CPI_adjusted_GR")
+
+CPI_GR_Port$type = "Real Value"
+p <- ggplot() +
+  geom_line(data = CPI_GR_Port, aes(x = Time, y = CPI_adjusted_GR_Portfolio, color = type))
+```
+
+# Simple Bootstraping
+
+```{r, echo=FALSE}
+sp <- p
+for (i in 1:3) {
+  CPI_GR_sim <- data.frame(Time = CPI_GR$Time,
+                           CPI_adjusted_GR = sample(CPI_GR$CPI_adjusted_GR,n,replace=TRUE))
+  CPI_GR_Port_sim <- Cal_Port(CPI_GR_sim, "CPI_adjusted_GR")
+  CPI_GR_Port_sim$type = "Simulated Value"
+  sp <- sp + geom_line(data = CPI_GR_Port_sim, aes(x = Time, y = CPI_adjusted_GR_Portfolio, color = type))
+}
+sp + theme_bw() +
+  theme(legend.position="top",
+        legend.title = element_blank())
+```
+
+# Block Bootstraping
+```{r, echo=FALSE}
+bp <- p
+k <- n/12
+for (i in 1:3) {
+  CPI_GR_sim <- data.frame()
+  for (j in 1:k){
+  CPI_GR_sim <- rbind(CPI_GR_sim,
+                      data.frame(Time = CPI_GR$Time[(12*j-11):(12*j)],
+                                 CPI_adjusted_GR = sample(CPI_GR$CPI_adjusted_GR[(12*j-11):(12*j)],12,replace=TRUE)))
+}
+  CPI_GR_Port_sim <- Cal_Port(CPI_GR_sim, "CPI_adjusted_GR")
+  CPI_GR_Port_sim$type <- "Simulated Value"
+  bp <- bp + geom_line(data = CPI_GR_Port_sim, aes(x = Time, y = CPI_adjusted_GR_Portfolio, color = type))
+}
+bp + theme_bw() +
+  theme(legend.position="top",
+        legend.title = element_blank())
+```
