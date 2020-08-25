@@ -1,0 +1,182 @@
+---
+title: "Simulation"
+output: pdf_document
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+source("R/Simulation.R")
+```
+
+# Simple Bootstraping
+
+## CPI-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPI_adjusted, "CPI_adjusted_GR", 1000, simfun = Spl_Boot)
+```
+
+## CPI-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPI_adjusted, "CPI_adjusted_PR", 1000, simfun = Spl_Boot)
+```
+
+## CPIC-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPIC_adjusted, "CPIC_adjusted_GR", 1000, simfun = Spl_Boot)
+```
+
+## CPIC-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPIC_adjusted, "CPIC_adjusted_PR", 1000, simfun = Spl_Boot)
+```
+
+
+## PPI-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PPI_adjusted, "PPI_adjusted_GR", 1000, simfun = Spl_Boot)
+```
+
+## PPI-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PPI_adjusted, "PPI_adjusted_PR", 1000, simfun = Spl_Boot)
+```
+
+## PCE-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PCE_adjusted, "PCE_adjusted_GR", 1000, simfun = Spl_Boot)
+```
+
+## PCE-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PCE_adjusted, "PCE_adjusted_PR", 1000, simfun = Spl_Boot)
+```
+
+## Robert Shiller-adjusted Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(RS_adjusted, "CPI_adjusted_Return", 1000, simfun = Spl_Boot)
+```
+
+
+
+# Block Bootstraping
+
+## CPI-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPI_adjusted, "CPI_adjusted_GR", 1000, simfun = Blk_Boot)
+```
+
+## CPI-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPI_adjusted, "CPI_adjusted_PR", 1000, simfun = Blk_Boot)
+```
+
+## CPIC-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPIC_adjusted, "CPIC_adjusted_GR", 1000, simfun = Blk_Boot)
+```
+
+## CPI-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPIC_adjusted, "CPIC_adjusted_PR", 1000, simfun = Blk_Boot)
+```
+
+## PPI-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PPI_adjusted, "PPI_adjusted_GR", 1000, simfun = Blk_Boot)
+```
+
+## CPI-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PPI_adjusted, "PPI_adjusted_PR", 1000, simfun = Blk_Boot)
+```
+
+## PCE-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PCE_adjusted, "PCE_adjusted_GR", 1000, simfun = Blk_Boot)
+```
+
+## PCE-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PCE_adjusted, "PCE_adjusted_PR", 1000, simfun = Blk_Boot)
+```
+
+## Robert Shiller-adjusted Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(RS_adjusted, "CPI_adjusted_Return", 1000, simfun = Blk_Boot)
+```
+
+
+# Parametric Simulation -- LogNormal
+
+## CPI-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPI_adjusted, "CPI_adjusted_GR", 1000, simfun = LN_Sim)
+```
+
+## CPI-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPI_adjusted, "CPI_adjusted_PR", 1000, simfun = LN_Sim)
+```
+
+## CPIC-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPIC_adjusted, "CPIC_adjusted_GR", 1000, simfun = LN_Sim)
+```
+
+## CPIC-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(CPIC_adjusted, "CPIC_adjusted_PR", 1000, simfun = LN_Sim)
+```
+
+## PPI-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PPI_adjusted, "PPI_adjusted_GR", 1000, simfun = LN_Sim)
+```
+
+## PPI-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PPI_adjusted, "PPI_adjusted_PR", 1000, simfun = LN_Sim)
+```
+
+## PCE-adjusted Gross Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PCE_adjusted, "PCE_adjusted_GR", 1000, simfun = LN_Sim)
+```
+
+## PCE-adjusted Price Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(PCE_adjusted, "PCE_adjusted_PR", 1000, simfun = LN_Sim)
+```
+
+## Robert Shiller-adjusted Return
+
+```{r, echo=FALSE}
+Sim_Return_Plot(RS_adjusted, "CPI_adjusted_Return", 1000, simfun = LN_Sim)
+```
+
+
