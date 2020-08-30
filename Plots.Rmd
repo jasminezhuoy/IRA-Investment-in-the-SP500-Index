@@ -58,7 +58,7 @@ return = na.omit(return)
 # par(mfrow = c(2, 2))
 # reshape data from wide to long format
 # GR normal scale
-long = melt(return, measure.vars=c('CPI_GR_portfolio','CPIC_GR_portfolio','PPI_GR_portfolio','PCE_GR_portfolio','RS_GR_portfolio')) %>% select(Time, variable, value)
+long = melt(return, measure.vars=c('CPI_GR_portfolio','CPIC_GR_portfolio','PPI_GR_portfolio','RS_GR_portfolio')) %>% select(Time, variable, value)
 g = ggplot(long, aes(Time, value, shape = variable, color = factor(variable))) + 
   geom_line() +
   scale_x_date(date_breaks = "10 years")+
@@ -69,7 +69,7 @@ g = ggplot(long, aes(Time, value, shape = variable, color = factor(variable))) +
 print(g)
 
 # PR normal scale
-long = melt(return, measure.vars=c('CPI_PR_portfolio','CPIC_PR_portfolio','PPI_PR_portfolio','PCE_PR_portfolio')) %>% select(Time, variable, value)
+long = melt(return, measure.vars=c('CPI_PR_portfolio','CPIC_PR_portfolio','PPI_PR_portfolio')) %>% select(Time, variable, value)
 g = ggplot(long, aes(Time, value, shape = variable, color = factor(variable))) + 
   geom_line() +
   scale_x_date(date_breaks = "10 years")+
@@ -83,23 +83,23 @@ print(g)
 for (col in 20:28){return[col] = log(return[col])}
 # reshape data from wide to long format
 # GR logged scale
-long = melt(return, measure.vars=c('CPI_GR_portfolio','CPIC_GR_portfolio','PPI_GR_portfolio','PCE_GR_portfolio','RS_GR_portfolio')) %>% select(Time, variable, value)
+long = melt(return, measure.vars=c('CPI_GR_portfolio','CPIC_GR_portfolio','PPI_GR_portfolio','RS_GR_portfolio')) %>% select(Time, variable, value)
 g = ggplot(long, aes(Time, value, shape = variable, color = factor(variable))) + 
   geom_line() +
   scale_x_date(date_breaks = "10 years")+
-  labs(title="Logged starting GR portfolio real value to reach $1m in 2020", color = "Portfolio")+
-  ylab("Logged portfolio real value in US dollars")+
+  labs(title="Log starting GR portfolio real value to reach $1m in 2020", color = "Portfolio")+
+  ylab("Log portfolio real value in US dollars")+
   guides(color = guide_legend(override.aes = list(size=3)))+
   theme_minimal()
 print(g)
 
 # PR logged scale
-long = melt(return, measure.vars=c('CPI_PR_portfolio','CPIC_PR_portfolio','PPI_PR_portfolio','PCE_PR_portfolio')) %>% select(Time, variable, value)
+long = melt(return, measure.vars=c('CPI_PR_portfolio','CPIC_PR_portfolio','PPI_PR_portfolio')) %>% select(Time, variable, value)
 g = ggplot(long, aes(Time, value, shape = variable, color = factor(variable))) + 
   geom_line() +
   scale_x_date(date_breaks = "10 years")+
-  labs(title="Logged starting portfolio real value to reach $1m in 2020", color = "Portfolio x Deflation \nmethod combinations")+
-  ylab("Logged portfolio real value in US dollars")+
+  labs(title="Log starting portfolio real value to reach $1m in 2020", color = "Portfolio")+
+  ylab("Log portfolio real value in US dollars")+
   guides(color = guide_legend(override.aes = list(size=3)))+
   theme_minimal()
 print(g)
@@ -149,7 +149,7 @@ for (col in 29:37){
       ct = ct+1
     }
     if (fulfiled){return[i,col] = ct} else {return[i,col] = NA}
-    if (i%%12==0){print(paste("Portfolio:",col,"Time:",return$Time[i],"t:",ct, "Time elapsed:", as.numeric(proc.time()-ptm)[3]))}
+    if (i%%120==0){print(paste("Portfolio:",col,"Time:",return$Time[i],"t:",ct, "Time elapsed:", as.numeric(proc.time()-ptm)[3]))}
   }
 }
 
@@ -165,20 +165,30 @@ Red vertical lines in histograms represents the mean time for a portfolio to rea
 ```{r, echo=FALSE, warning=FALSE, fig.height=3.5, fig.width=8}
 load("Time to 1m.RData")
 
-for (col in 29:37){
+for (col in c(29,30,31,32,33,34,37)){
   ## Convert t to year scale
   return[col]=return[col]/12
-  p=ggplot(return, aes_string(return[,col]))+
-    geom_bar(fill=I("steelblue"),color="white", binwidth = 1)+
-    labs(title=names(return)[col])+
-    xlab("Time to reach $1m in years")+
-    geom_vline(aes(xintercept = mean(return[,col],na.rm = TRUE)),col='blue',size=2)+
-    annotate("text", x=mean(return[,col],na.rm = TRUE)-1, y=40, label= paste("Mean:\n",round(mean(return[,col],na.rm = TRUE),1),"years"))+
-    geom_vline(aes(xintercept = median(return[,col],na.rm = TRUE)),col='red',size=2)+
-    annotate("text", x=median(return[,col],na.rm = TRUE)+1, y=40, label= paste("Median:\n",round(mean(return[,col],na.rm = TRUE),1),"years"))+
-    theme_minimal()
+  if (col==29) {x1=-0.9;x2=-0.9;y1=60;y2=y1;pf='CPI_GR'}
+  else if (col==30) {x1=-1.1;x2=-1.4;y1=26;y2=21;pf='CPI_PR'}
+  else if (col==31) {x1=-0.8;x2=-0.8;y1=55;y2=y1;pf='CPIC_GR'}
+  else if (col==32) {x1=-1;x2=2;y1=24;y2=y1;pf='CPIC_PR'}
+  else if (col==33) {x1=-1.2;x2=1.2;y1=50;y2=y1;pf='PPI_GR'}
+  else if (col==34) {x1=-1;x2=1;y1=28;y2=y1;pf='PPI_PR'}
+  else if (col==37) {x1=-1;x2=1;y1=25;y2=y1;pf='RS_GR'}
+  p=ggplot(return, aes_string(names(return)[col]))+
+      geom_bar(fill="steelblue",color="white", binwidth = 1)+
+      labs(title=paste('Distribution of time to reach $1m (in years) for',pf))+
+      xlab("Time to reach $1m in years")+
+      ylab('Time to reach $1m from different\nstart time (in years)')+
+      geom_vline(aes(xintercept = mean(return[,col],na.rm = TRUE)),col='blue',size=2)+
+      annotate("text", x=mean(return[,col],na.rm = TRUE)+x1, y=y1, label= paste("Mean:\n",round(mean(return[,col],na.rm = TRUE),1),"years"), size=3.5, col='blue')+
+      geom_vline(aes(xintercept = median(return[,col],na.rm = TRUE)),col='red',size=2)+
+      annotate("text", x=median(return[,col],na.rm = TRUE)+x2, y=y2, label= paste("Median:\n",round(median(return[,col],na.rm = TRUE),1),"years"), size=3.5, col='red')+
+      theme_minimal()
+  
   print(p)
 }
+
 ```
 
 ## PCE_PR portfolio never reaches $1m from any starting time since 1959 Feb.
@@ -187,38 +197,40 @@ for (col in 29:37){
 ```{r, echo=FALSE, warning=FALSE, fig.height=3.5, fig.width=8}
 # GR
 return.temp = return %>% 
-  gather(Portfolio, t, c('CPI_GR_t','CPIC_GR_t','PPI_GR_t','PCE_GR_t','RS_GR_t')) %>%
+  gather(Portfolio, t, c('CPI_GR_t','CPIC_GR_t','PPI_GR_t','RS_GR_t')) %>%
   select(Portfolio, t)
 p = ggplot(return.temp, aes(x=Portfolio, y=t), color=as.factor(Portfolio)) + 
-    geom_boxplot(fill=I("white"),color="steelblue")+
-    xlab("Portfolio x Inflation adjustment method")+
-    ylab("Time to $1m in years")+
+    geom_boxplot(fill="white",color="steelblue")+
+    xlab("Gross Return(GR) Portfolios")+
+    ylab("Time to Reach $1m in Years")+
     theme_minimal()+
-    labs(title="Time to reach $1m for different GR portfolios")+ 
-    annotate("text", x=5, y=median(return.temp$t,na.rm = TRUE)-3, label= paste("Median:",round(median(return.temp$t,na.rm = TRUE),1),"years"),color="blue")+
+    labs(title="Boxplot of Time to Reach $1m for Different Gross Return(GR) Portfolios")+ 
+    annotate("text", x=4, y=median(return.temp$t,na.rm = TRUE)-3, label= paste("Median:",round(median(return.temp$t,na.rm = TRUE),1),"years"),color="blue")+
     geom_hline(aes(yintercept = median(return.temp$t,na.rm = TRUE)),col='blue',lty=2,size=1)+
     stat_summary(fun.y=median, colour="red", geom="text", show_guide = FALSE, vjust=1.5, aes(label=round(..y.., digits=1)))+
-    stat_summary(fun.y=median, colour="darkred", geom="point", hape=18, size=3,show_guide = FALSE)+
-    annotate("text", x=5, y=mean(return.temp$t,na.rm = TRUE)+3, label= paste("Mean:",round(mean(return.temp$t,na.rm = TRUE),1),"years"),color="red")+
-    geom_hline(aes(yintercept = mean(return.temp$t,na.rm = TRUE)),col='red',lty=2,size=1)
+    stat_summary(fun.y=median, colour="darkred", geom="point", size=3,show_guide = FALSE)+
+    annotate("text", x=4, y=mean(return.temp$t,na.rm = TRUE)+3, label= paste("Mean:",round(mean(return.temp$t,na.rm = TRUE),1),"years"),color="red")+
+    geom_hline(aes(yintercept = mean(return.temp$t,na.rm = TRUE)),col='red',lty=2,size=1)+
+    scale_x_discrete(labels=c('CPI_GR','CPIC_GR','PPI_GR','RS_GR'))
 print(p)
 
 #PR
 return.temp = return %>% 
-  gather(Portfolio, t, c('CPI_PR_t','CPIC_PR_t','PPI_PR_t','PCE_PR_t')) %>%
+  gather(Portfolio, t, c('CPI_PR_t','CPIC_PR_t','PPI_PR_t')) %>%
   select(Portfolio, t)
 p = ggplot(return.temp, aes(x=Portfolio, y=t), color=as.factor(Portfolio)) + 
-    geom_boxplot(fill=I("white"),color="steelblue")+
-    xlab("Portfolio x PR")+
-    ylab("Time to $1m in years")+
+    geom_boxplot(fill="white",color="steelblue")+
+    xlab("Price Return(PR) Portfolios")+
+    ylab("Time to Reach $1m in Years")+
     theme_minimal()+
-    labs(title="Time to reach $1m for different PR portfolios")+ 
+    labs(title="Boxplot of Time to Reach $1m for Different Price Return(PR) Portfolios")+ 
     annotate("text", x=3, y=median(return.temp$t,na.rm = TRUE)+2, label= paste("Median:",round(median(return.temp$t,na.rm = TRUE),1),"years"),color="blue")+
     geom_hline(aes(yintercept = median(return.temp$t,na.rm = TRUE)),col='blue',lty=2,size=1)+
     stat_summary(fun.y=median, colour="red", geom="text", show_guide = FALSE, vjust=1.5, aes(label=round(..y.., digits=1)))+
-    stat_summary(fun.y=median, colour="darkred", geom="point", hape=18, size=3,show_guide = FALSE)+
+    stat_summary(fun.y=median, colour="darkred", geom="point",size=3,show_guide = FALSE)+
     annotate("text", x=3, y=mean(return.temp$t,na.rm = TRUE)-2, label= paste("Mean:",round(mean(return.temp$t,na.rm = TRUE),1),"years"),color="red")+
-    geom_hline(aes(yintercept = mean(return.temp$t,na.rm = TRUE)),col='red',lty=2,size=1)
+    geom_hline(aes(yintercept = mean(return.temp$t,na.rm = TRUE)),col='red',lty=2,size=1)+
+    scale_x_discrete(labels=c('CPI_PR','CPIC_PR','PPI_PR'))
 print(p)
 ```
 
@@ -232,7 +244,7 @@ print(p)
 unfulfiled_t = data.frame("Portfolio"='a',
                           "Unfulfiled.start.time"=as.Date("2019-12-01"),
                           "Unfulfiled.end.time"=as.Date("2019-12-01"),stringsAsFactors=FALSE)
-for (col in c(29,31,33,35,37)){
+for (col in c(29,31,33,37)){
   unfulfiled_t=rbind(list(as.factor(colnames(return)[col]),
                           as.Date(return$Time[which(is.na(return[col]))[1]]),
                           as.Date("2019-12-01")), unfulfiled_t)
@@ -244,9 +256,13 @@ ggplot() +
   xlab("Portfolio")+
   ylab("Start time")+
   theme_minimal()+
-  labs(title="Impossible start time for GR portfolios to reach $1m in 2020")+ 
-  annotate("text", y=min(unfulfiled_t$Unfulfiled.start.time), x=2.7, label=min(unfulfiled_t$Unfulfiled.start.time),color="blue")+
-  annotate("text", y=max(unfulfiled_t$Unfulfiled.start.time), x=1.7, label=max(unfulfiled_t$Unfulfiled.start.time),color="blue")
+  labs(title="Impossible Start Time for GR Portfolios to Reach $1m in 2020")+ 
+  annotate("text", y=min(unfulfiled_t$Unfulfiled.start.time)+900, x=3.7,
+           label=min(unfulfiled_t$Unfulfiled.start.time),color="blue")+
+  annotate("point", y=min(unfulfiled_t$Unfulfiled.start.time), x=4, colour = "lightblue", size=5)+
+  annotate("text", y=max(unfulfiled_t$Unfulfiled.start.time)+900, x=1.7,
+           label=max(unfulfiled_t$Unfulfiled.start.time),color="blue")+
+  annotate("point", y=max(unfulfiled_t$Unfulfiled.start.time), x=2, colour = "lightblue", size=5)
 
 #PR
 unfulfiled_t = data.frame("Portfolio"='a',
@@ -264,9 +280,13 @@ ggplot() +
   xlab("Portfolio")+
   ylab("Start time")+
   theme_minimal()+
-  labs(title="Impossible start time for PR portfolios to reach $1m in 2020")+ 
-  annotate("text", y=min(unfulfiled_t$Unfulfiled.start.time), x=2.7, label=min(unfulfiled_t$Unfulfiled.start.time),color="blue")+
-  annotate("text", y=max(unfulfiled_t$Unfulfiled.start.time), x=1.7, label=max(unfulfiled_t$Unfulfiled.start.time),color="blue")
+  labs(title="Impossible Start Time for PR Portfolios to Reach $1m in 2020")+ 
+  annotate("text", y=min(unfulfiled_t$Unfulfiled.start.time)+1200, x=2.7,
+           label=min(unfulfiled_t$Unfulfiled.start.time),color="blue")+
+  annotate("point", y=min(unfulfiled_t$Unfulfiled.start.time), x=3, colour = "lightblue", size=5)+
+  annotate("text", y=max(unfulfiled_t$Unfulfiled.start.time)+1200, x=3.7, 
+           label=max(unfulfiled_t$Unfulfiled.start.time),color="blue")+
+  annotate("point", y=max(unfulfiled_t$Unfulfiled.start.time), x=4, colour = "lightblue", size=5)
 
 ```
 
@@ -277,60 +297,222 @@ ggplot() +
 
 ## Contribute based on historical contribution limit
 ```{r, eval=FALSE, include=FALSE}
+load("Time to 1m.RData")
+return = merge(return, limit, by="Year")
+
 ## Time taken from $0 to $1m
 for (measure in measures){
   for (return_type in return_types){
     return[1,ncol(return)+1] = 0 ## To reach 1m after 2019 Dec
-    names(return)[ncol(return)] = paste0(measure,"_",return_type,"_","terminal.val")
+    names(return)[ncol(return)] = paste0(measure,"_",return_type,"_","t2")
+  }
+}
+## RS
+return[1,ncol(return)+1] = 0 ## To reach 1m after 2019 Dec
+names(return)[ncol(return)] = "RS_GR_t2"
+
+## inflation-adjusted contribution limit
+for (measure in measures){
+  return[1,ncol(return)+1] = 0 ## To reach 1m after 2019 Dec
+  names(return)[ncol(return)] = paste0(measure,"_","limit")
+}
+return[1,ncol(return)+1] = 0
+names(return)[ncol(return)] = paste0('RS',"_","limit")
+return = return[seq(dim(return)[1],1),]
+for (col in 48:52){
+  for (i in 1:nrow(return)){
+    if (col==48){rate=5}
+    else if (col==49){rate=8}
+    else if (col==50){rate=11}
+    else if (col==51){rate=14}
+    else if (col==52){rate=5}
+    return[i,col]=return[i,38]*cumprod(1+return[rate])[i,1]
   }
 }
 
-## RS
-return[1,ncol(return)+1] = 0 ## To reach 1m after 2019 Dec
-names(return)[ncol(return)] = "RS_GR_terminal.val"
 ```
 
 ```{r, eval=FALSE, include=FALSE}
-load("Time to 1m.RData")
-return = merge(return, limit, by="Year")
-
+return = return[seq(dim(return)[1],1),]
 ptm = proc.time()
 for (col in 39:47){
+# for (col in 39){
   for (i in 1:nrow(return)){
+  # for (i in 41:43){
     ct = 0
     portfolio_value = 0
     temp = i
+    fulfiled = T
     while (portfolio_value<1000000){
       if (temp==1){
-        portfolio_value = portfolio_value+500
+        if (col==39|col==40){portfolio_value = portfolio_value+return[i,48]/12}
+        else if (col==41|col==42){portfolio_value = portfolio_value+return[i,49]/12}
+        else if (col==43|col==44){portfolio_value = portfolio_value+return[i,50]/12}
+        else if (col==45|col==46){portfolio_value = portfolio_value+return[i,51]/12}
+        else if (col==47){portfolio_value = portfolio_value+return[i,52]/12}
         temp = temp+1
+        # print(paste("Time:",return$Time[i],'ct:',ct,'portfolio:', portfolio_value))
       } else if (temp>nrow(return)){
+        fulfiled = F
         break
       } else {
-        if (col==39|col==40){portfolio_value = (portfolio_value+return[i,38]/12)*(1+return[temp-1,col-33])}
-        else if (col==41|col==42){portfolio_value = (portfolio_value+return[i,38]/12)*(1+return[temp-1,col-32])}
-        else if (col==43|col==44){portfolio_value = (portfolio_value+return[i,38]/12)*(1+return[temp-1,col-31])}
-        else if (col==45|col==46){portfolio_value = (portfolio_value+return[i,38]/12)*(1+return[temp-1,col-30])}
-        else if (col==47){portfolio_value = (portfolio_value+return[i,38]/12)*(1+return[temp-1,col-28])}
+        if (col==39|col==40){portfolio_value = (portfolio_value+return[i,48]/12)*(1+return[temp-1,col-33])}
+        else if (col==41|col==42){portfolio_value = (portfolio_value+return[i,49]/12)*(1+return[temp-1,col-32])}
+        else if (col==43|col==44){portfolio_value = (portfolio_value+return[i,50]/12)*(1+return[temp-1,col-31])}
+        else if (col==45|col==46){portfolio_value = (portfolio_value+return[i,51]/12)*(1+return[temp-1,col-30])}
+        else if (col==47){portfolio_value = (portfolio_value+return[i,52]/12)*(1+return[temp-1,col-28])}
         temp = temp+1
         # print(paste('col:',col,'ct:',ct,'portfolio:', portfolio_value))
+        # print(paste("Time:",return$Time[i],'ct:',ct,'portfolio:', round(portfolio_value,0), "Lim:", round(return[i,48]/12),0))
       }
       ct = ct+1
     }
-    return[i,col] = portfolio_value
+    if (fulfiled){return[i,col] = ct} else {return[i,col] = NA}
     if (i%%12==0){print(paste("Portfolio:",col,"Time:",return$Time[i],"t:",ct, "Time elapsed:", as.numeric(proc.time()-ptm)[3]))}
   }
 }
 
-name = c('CPI_GR','CPI_PR','CPIC_GR','CPIC_PR','PPI_GR','PPI_PR','PCE_GR','PCE_PR','RS_GR')
-names(return)[39:47] = paste0(name,"_","terminal.val")
-save(return, file="Terminal Values.RData")
+# name = c('CPI_GR','CPI_PR','CPIC_GR','CPIC_PR','PPI_GR','PPI_PR','PCE_GR','PCE_PR','RS_GR')
+# names(return)[39:47] = paste0(name,"_","terminal.val")
+save(return, file="Time to 1m-adj lim.RData")
+
 ```
 
-```{r, echo=FALSE}
-load("Terminal Values.RData")
-name = c('CPI_GR','CPI_PR','CPIC_GR','CPIC_PR','PPI_GR','PPI_PR','PCE_GR','PCE_PR','RS_GR')
-names(return)[39:47] = paste0(name,"_","terminal")
-print(return[seq(1,nrow(return),12),39:47])
+\newpage
+## Distribution of time taken from $0 to $1m for different portfolio x deflation method combinations
+Red vertical lines in histograms represents the mean time for a portfolio to reach $1m
+
+```{r, echo=FALSE, warning=FALSE, fig.height=3.5, fig.width=8}
+load("Time to 1m-adj lim.RData")
+
+for (col in c(39:44,47)){
+  ## Convert t to year scale
+  return[col]=return[col]/12
+  space = '\n'
+  if (col==39) {x1=-1;x2=-1;y1=25;y2=y1;pf='CPI_GR'}
+  else if (col==40) {x1=-0.2;x2=-0.45;y1=21;y2=15;pf='CPI_PR'}
+  else if (col==41) {x1=-1;x2=1;y1=30;y2=y1;pf='CPIC_GR'}
+  else if (col==42) {x1=-0.25;x2=-0.17;y1=17;y2=y1;pf='CPIC_PR'}
+  else if (col==43) {x1=-1.1;x2=1.1;y1=24.5;y2=y1;pf='PPI_GR'}
+  else if (col==44) {x1=-0.35;x2=0.35;y1=24;y2=y1;pf='PPI_PR';space=''}
+  else if (col==47) {x1=-0.3;x2=-0.45;y1=25;y2=19;pf='RS_GR'}
+  p=ggplot(return, aes_string(names(return)[col]))+
+      geom_bar(fill="steelblue",color="white", binwidth = 1)+
+      labs(title=paste('Distribution of time to reach $1m in years for',pf))+
+      xlab("Time to reach $1m in years")+
+      ylab('Frequency')+
+      geom_vline(aes(xintercept = mean(return[,col],na.rm = TRUE)),col='blue',size=2)+
+      annotate("text", x=mean(return[,col],na.rm = TRUE)+x1, y=y1, label= paste("Mean:",space,round(mean(return[,col],na.rm = TRUE),1),"years"), size=3.5, col='blue')+
+      geom_vline(aes(xintercept = median(return[,col],na.rm = TRUE)),col='red',size=2)+
+      annotate("text", x=median(return[,col],na.rm = TRUE)+x2, y=y2, label= paste("Median:",space,round(median(return[,col],na.rm = TRUE),1),"years"), size=3.5, col='red')+
+      theme_minimal()
+  
+  print(p)
+}
+
+
+
+```
+
+## Inflation-adjusted Yearly Contribution Limit Changes
+```{r, echo=FALSE, warning=FALSE, fig.height=3.5, fig.width=8}
+plot(y=return$CPI_limit,x=return$Time,main='CPI/RS-adjusted Yearly Contribution Limit',xlab='Yearly Contribution Limit',ylab='Time')
+plot(y=return$CPIC_limit,x=return$Time,main='CPIC-adjusted Yearly Contribution Limit',xlab='Yearly Contribution Limit',ylab='Time')
+plot(y=return$PPI_limit,x=return$Time,main='PPI-adjusted Yearly Contribution Limit',xlab='Yearly Contribution Limit',ylab='Time')
+```
+
+## PCE_PR portfolio never reaches $1m from any starting time since 1959 Feb.
+
+
+```{r, echo=FALSE, warning=FALSE, fig.height=3.5, fig.width=8}
+# GR
+return.temp = return %>% 
+  gather(Portfolio, t, c('CPI_GR_t2','CPIC_GR_t2','PPI_GR_t2','RS_GR_t2')) %>%
+  select(Portfolio, t)
+p = ggplot(return.temp, aes(x=Portfolio, y=t), color=as.factor(Portfolio)) + 
+    geom_boxplot(fill="white",color="steelblue")+
+    xlab("Gross Return(GR) Portfolios")+
+    ylab("Time to Reach $1m in Years")+
+    theme_minimal()+
+    labs(title="Boxplot of Time to Reach $1m for Different Gross Return(GR) Portfolios")+ 
+    annotate("text", x=4, y=median(return.temp$t,na.rm = TRUE)+1, label= paste("Median:",round(median(return.temp$t,na.rm = TRUE),1),"years"),color="blue")+
+    geom_hline(aes(yintercept = median(return.temp$t,na.rm = TRUE)),col='blue',lty=2,size=1)+
+    stat_summary(fun.y=median, colour="red", geom="text", show_guide = FALSE, vjust=1.5, aes(label=round(..y.., digits=1)))+
+    stat_summary(fun.y=median, colour="darkred", geom="point", size=3,show_guide = FALSE)+
+    annotate("text", x=4, y=mean(return.temp$t,na.rm = TRUE)-1, label= paste("Mean:",round(mean(return.temp$t,na.rm = TRUE),1),"years"),color="red")+
+    geom_hline(aes(yintercept = mean(return.temp$t,na.rm = TRUE)),col='red',lty=2,size=1)+
+    scale_x_discrete(labels=c('CPI_GR','CPIC_GR','PPI_GR','RS_GR'))
+print(p)
+
+#PR
+return.temp = return %>% 
+  gather(Portfolio, t, c('CPI_PR_t2','CPIC_PR_t2','PPI_PR_t2')) %>%
+  select(Portfolio, t)
+p = ggplot(return.temp, aes(x=Portfolio, y=t), color=as.factor(Portfolio)) + 
+    geom_boxplot(fill="white",color="steelblue")+
+    xlab("Price Return(PR) Portfolios")+
+    ylab("Time to Reach $1m in Years")+
+    theme_minimal()+
+    labs(title="Boxplot of Time to Reach $1m for Different Price Return(PR) Portfolios")+ 
+    annotate("text", x=3.3, y=median(return.temp$t,na.rm = TRUE)-0.5, label= paste("Median:\n",round(median(return.temp$t,na.rm = TRUE),1),"years"),color="blue")+
+    geom_hline(aes(yintercept = median(return.temp$t,na.rm = TRUE)),col='blue',lty=2,size=1)+
+    stat_summary(fun.y=median, colour="red", geom="text", show_guide = FALSE, vjust=1.5, aes(label=round(..y.., digits=1)))+
+    stat_summary(fun.y=median, colour="darkred", geom="point", size=3,show_guide = FALSE)+
+    annotate("text", x=3.3, y=mean(return.temp$t,na.rm = TRUE)+0.5, label= paste("Mean:\n",round(mean(return.temp$t,na.rm = TRUE),1),"years"),color="red")+
+    geom_hline(aes(yintercept = mean(return.temp$t,na.rm = TRUE)),col='red',lty=2,size=1)+
+    scale_x_discrete(labels=c('CPI_PR','CPIC_PR','PPI_PR'))
+print(p)
+```
+
+\newpage
+
+```{r,echo=FALSE, fig.height=3.5, fig.width=8, echo=FALSE, warning=FALSE}
+# GR
+unfulfiled_t = data.frame("Portfolio"='a',
+                          "Unfulfiled.start.time"=as.Date("2019-12-01"),
+                          "Unfulfiled.end.time"=as.Date("2019-12-01"),stringsAsFactors=FALSE)
+for (col in c(39,41,43,47)){
+  unfulfiled_t=rbind(list(as.factor(colnames(return)[col]),
+                          as.Date(return$Time[which(is.na(return[col]))[1]]),
+                          as.Date("2019-12-01")), unfulfiled_t)
+}
+unfulfiled_t=unfulfiled_t[-nrow(unfulfiled_t),]
+ggplot() + 
+  geom_linerange(data=unfulfiled_t, aes(x=Portfolio, ymin=Unfulfiled.start.time, ymax=Unfulfiled.end.time),size=1.5)+
+  coord_flip()+
+  xlab("Portfolio")+
+  ylab("Start time")+
+  theme_minimal()+
+  labs(title="Impossible Start Time for GR Portfolios to Reach $1m in 2020")+ 
+  annotate("text", y=min(unfulfiled_t$Unfulfiled.start.time)+900, x=3.7,
+           label=min(unfulfiled_t$Unfulfiled.start.time),color="blue")+
+  annotate("point", y=min(unfulfiled_t$Unfulfiled.start.time), x=4, colour = "lightblue", size=5)+
+  annotate("text", y=max(unfulfiled_t$Unfulfiled.start.time)+900, x=1.7,
+           label=max(unfulfiled_t$Unfulfiled.start.time),color="blue")+
+  annotate("point", y=max(unfulfiled_t$Unfulfiled.start.time), x=2, colour = "lightblue", size=5)
+
+#PR
+unfulfiled_t = data.frame("Portfolio"='a',
+                          "Unfulfiled.start.time"=as.Date("2019-12-01"),
+                          "Unfulfiled.end.time"=as.Date("2019-12-01"),stringsAsFactors=FALSE)
+for (col in c(40,42,44,46)){
+  unfulfiled_t=rbind(list(as.factor(colnames(return)[col]),
+                          as.Date(return$Time[which(is.na(return[col]))[1]]),
+                          as.Date("2019-12-01")), unfulfiled_t)
+}
+unfulfiled_t=unfulfiled_t[-nrow(unfulfiled_t),]
+ggplot() + 
+  geom_linerange(data=unfulfiled_t, aes(x=Portfolio, ymin=Unfulfiled.start.time, ymax=Unfulfiled.end.time),size=1.5)+
+  coord_flip()+
+  xlab("Portfolio")+
+  ylab("Start time")+
+  theme_minimal()+
+  labs(title="Impossible Start Time for PR Portfolios to Reach $1m in 2020")+ 
+  annotate("text", y=min(unfulfiled_t$Unfulfiled.start.time)+1200, x=3.7,
+           label=min(unfulfiled_t$Unfulfiled.start.time),color="blue")+
+  annotate("point", y=min(unfulfiled_t$Unfulfiled.start.time), x=4, colour = "lightblue", size=5)+
+  annotate("text", y=max(unfulfiled_t$Unfulfiled.start.time)+1200, x=2.7, 
+           label=max(unfulfiled_t$Unfulfiled.start.time),color="blue")+
+  annotate("point", y=max(unfulfiled_t$Unfulfiled.start.time), x=3, colour = "lightblue", size=5)
 
 ```
