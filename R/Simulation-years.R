@@ -1,6 +1,9 @@
 library(zoo)
 library(ggplot2)
+library(ggrepel)
 library(dplyr)
+# remotes::install_github("jonathan-g/gt")
+library(gt)
 
 sp <- read.csv("./datasets/sp500 returns.csv")
 sp <- sp[-1,1:3]
@@ -22,7 +25,7 @@ Cal_Port <- function(return, con = 500){
   return(portfolio)
 }
 
-Sim_Port <- function(return, year, iter = 100000, simfun){
+Sim_Port <- function(return, year, iter = 10000, simfun){
   port <- list()
   for (i in 1:iter){
     re <- simfun(return, year = year)
@@ -51,15 +54,17 @@ Cal_Quan <- function(dp, year){
   s <- data.frame(sapply(dp,sort))
   t <- (1:(year*12))/12
   iter <- nrow(dp)
-  plotdata <- data.frame()
-  for (per in c(0.9,0.75,0.5,0.25,0.1,0.01)){
+  plotdata <- data.frame(Time = t,
+                         Portfolio = as.vector(t(s[iter,1:(year*12)])),
+                         Percentile = "Max")
+  for (per in c(0.99,0.9,0.75,0.5,0.25,0.1,0.01)){
     plotdata <- rbind(plotdata, data.frame(Time = t,
                                            Portfolio = as.vector(t(s[per*iter,1:(year*12)])), 
                                            Percentile = paste0(per*100, "% Percentile")))
   }
-  # plotdata <- rbind(plotdata, data.frame(Time = t,
-  #                                        Portfolio = as.vector(t(s[1,1:(year*12)])), 
-  #                                        Percentile = "Min"))
+  plotdata <- rbind(plotdata, data.frame(Time = t,
+                                         Portfolio = as.vector(t(s[1,1:(year*12)])),
+                                         Percentile = "Min"))
   return(plotdata)
 }
 
@@ -70,13 +75,20 @@ Sim_Plot <- function(dp, year){
   plotdata <- Cal_Quan(dp, year)
   
   ggplot() +
-    geom_line(data=plotdata, aes(x = Time, y = Portfolio, color = Percentile)) +
-    geom_hline(yintercept = 1000000, linetype="dashed") +
+    geom_line(data=plotdata, aes(x = Time, y = Portfolio, color = Percentile), size=0.7) +
+    geom_hline(yintercept = 1000000, linetype="dashed", size=0.7) +
     theme_bw() +
-    labs(x = "Time in Years", y = "Portfolio Value")
+    scale_y_continuous(limits = c(0,2000000),breaks=c(0,500000,1000000,1500000,2000000),labels = c("$0","$500,000", "$1,000,000", "$1,500,000","$2,000,000"), expand = c(0,0)) +
+    scale_x_continuous(breaks = seq(0,year,5),expand = c(0,0)) +
+    labs(x = "Years", y = "Portfolio Value")+
+    theme(legend.box = "horizontal",legend.position = "top", 
+          legend.title = element_blank(), panel.border = element_blank(),
+          line = element_line(size=0.7), 
+          axis.line = element_line(), axis.text = element_text(face='bold'),
+          panel.grid.major =element_blank(), panel.grid.minor = element_blank())
 }
 
-Table_Quan <- function(dp, year = c(20,25,30,35,40)){
+Table_Quan <- function(dp, year = c(20,25,30,35,40,45)){
   p <- data.frame()
   s <- data.frame(sapply(dp,sort))
   for (y in year){
@@ -93,7 +105,7 @@ Table_Quan <- function(dp, year = c(20,25,30,35,40)){
     
     rownames(pt) <- pt$Percentile
     pt <- pt[1]
-    colnames(pt) <- paste0(y, "-Year Portfolio")
+    colnames(pt) <- paste0(y, " years")
     p <- rbind(p, t(pt))
   }
   t(p)
@@ -125,31 +137,48 @@ LN_Sim <- function(return, year = 40){
 # port <- Sim_Port(sp$GrossReturn, 40, simfun = Spl_Boot)
 # LNport <- Sim_Port(sp$GrossReturn, 40, simfun = LN_Sim)
 
-Tab_Years <- function(dp, year){
+Tab_Years <- function(dp, year, con=500){
   s <- data.frame(sapply(dp,sort))
   t <- (1:(year*12))/12
   iter <- nrow(dp)
-  plotdata <- data.frame(t(as.vector(t(s[iter,1:(year*12)]))))
+  plotdata <- data.frame(as.vector(s[iter,1:(year*12)]))
   q <- c(0.99,0.9,0.75,0.5,0.25,0.1,0.01)
   for (per in q){
     plotdata <- rbind(plotdata, as.vector(t(s[per*iter,1:(year*12)])))
   }
+  plotdata <- rbind(plotdata, as.vector(s[1,1:(year*12)]))
   
   tab <- data.frame()
-  for (i in seq_along(c(0,q))){
+  for (i in seq_along(c(0,q,1))){
     m <- sum(plotdata[i,]<1000000)+1
-    invest <- m*500
+    invest <- m*con
     y <- (m)/12
-    if (y>40){
+    if (y>year){
       y <- NA
       invest <- NA
     }
     tab <- rbind(tab,cbind(y,invest))
   }
-  colnames(tab) <- c('Years to reach $1m', 'Money have invested($)')
-  rownames(tab) <- c('Max',paste0(q, "% percentile"))
+  colnames(tab) <- c('Time', 'Invested')
+  rownames(tab) <- c('Max',paste0(q*100, "{\\%}"),'Min')
   
   return(tab)
+}
+
+Likelihood <- function(dp, year = c(20,25,30,35,40,45)){
+  s <- data.frame(sapply(dp,sort))
+  n <- dim(s)[1]
+  like <- data.frame()
+  for (y in year){
+    yn <- s[,y*12]
+    l <- sum(yn>=1000000)/n
+    like <- rbind(like,data.frame(paste0(l*100,"%")))
+  }
+  like <- data.frame(t(like))
+  colnames(like) <- paste0(year, " years")
+  # rownames(like) <- "Likelihood of Reaching 1M"
+  like$name <- "Likelihood of Reaching $\\text{\\$}$1M"
+  return(like)
 }
 
 # write.csv(t(plotdata), file="./datasets/LNsimulation.csv")
@@ -162,6 +191,25 @@ Tab_Years <- function(dp, year){
 # write.csv(dp, file="./datasets/BSsimulation10k.csv", row.names = F)
 # write.csv(dl, file="./datasets/LNsimulation10k.csv", row.names = F)
 
-
+Sim_Table <- function(tabletotle,title){
+  gt(data = tabletotal, rowname_col = "Percentile") %>%
+    tab_header(
+      title = "S&P 500 Return Simulation Results",
+      subtitle = title
+    ) %>%
+    tab_spanner(
+      label = "Portfolio Value After:",
+      columns = vars(`20 years`, `25 years`, `30 years`, `35 years`, `40 years`, `45 years`)
+    ) %>%
+    tab_spanner(
+      label = "To Reach $1M:",
+      columns = vars(`Time`, `Invested`)
+    ) %>%
+    fmt_currency(
+      columns = vars(`20 years`, `25 years`, `30 years`, `35 years`, `40 years`, `45 years`, `Invested`),
+      currency = "USD",
+      decimals = 0
+    )
+}
 
 
