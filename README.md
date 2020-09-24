@@ -1,5 +1,5 @@
 ## Should You Invest Roth IRA Contributions in the S&P 500 Index?
-Investigate whether the S&P 500 Index is a viable option for individuals to invest in Roth Individual Retirement Accounts (IRAs) to have $1,000,000 in retirement.
+If investing Individual Retirement Accounts (IRAs) contribution alone in the S&P 500 Index, will we become a millionnaire after retirement? If so, how long and how much should we invest?
 
 ### Methods
 - Bootstrapping
