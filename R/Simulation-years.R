@@ -56,7 +56,7 @@ Cal_Quan <- function(dp, year){
   iter <- nrow(dp)
   plotdata <- data.frame(Time = t,
                          Portfolio = as.vector(t(s[iter,1:(year*12)])),
-                         Percentile = "Max")
+                         Percentile = "Best")
   for (per in c(0.99,0.9,0.75,0.5,0.25,0.1,0.01)){
     plotdata <- rbind(plotdata, data.frame(Time = t,
                                            Portfolio = as.vector(t(s[per*iter,1:(year*12)])), 
@@ -64,7 +64,7 @@ Cal_Quan <- function(dp, year){
   }
   plotdata <- rbind(plotdata, data.frame(Time = t,
                                          Portfolio = as.vector(t(s[1,1:(year*12)])),
-                                         Percentile = "Min"))
+                                         Percentile = "Worst"))
   return(plotdata)
 }
 
@@ -73,18 +73,29 @@ Cal_Quan <- function(dp, year){
 Sim_Plot <- function(dp, year){
   # ending <- Cal_Ending(port, year)
   plotdata <- Cal_Quan(dp, year)
+  max_plotdata <- plotdata %>% 
+    group_by(Percentile) %>% 
+    filter(Portfolio<2000000) %>% 
+    mutate(max = max(Portfolio)) %>%
+    filter(Portfolio == max)
+  label_data <- plotdata %>% 
+    left_join(max_plotdata, by="Percentile") %>%
+    filter(round(Time.x,2)==round(Time.y-2.5,2)) %>%
+    mutate(angle = atan((Portfolio.y-Portfolio.x)/125000)*180/pi)
   
   ggplot() +
     geom_line(data=plotdata, aes(x = Time, y = Portfolio, color = Percentile), size=0.7) +
     geom_hline(yintercept = 1000000, linetype="dashed", size=0.7) +
+    geom_text(data=label_data, aes(x=Time.x-1, y=Portfolio.x+100000, color = Percentile, label = Percentile),angle=label_data$angle) +
     theme_bw() +
     scale_y_continuous(limits = c(0,2000000),breaks=c(0,500000,1000000,1500000,2000000),labels = c("$0","$500,000", "$1,000,000", "$1,500,000","$2,000,000"), expand = c(0,0)) +
     scale_x_continuous(breaks = seq(0,year,5),expand = c(0,0)) +
     labs(x = "Years", y = "Portfolio Value")+
-    theme(legend.box = "horizontal",legend.position = "top", 
+    theme(legend.box = "horizontal",legend.position = "none", 
           legend.title = element_blank(), panel.border = element_blank(),
           line = element_line(size=0.7), 
-          axis.line = element_line(), axis.text = element_text(face='bold'),
+          axis.line = element_line(), axis.text = element_text(face='bold', size = 12),
+          axis.title = element_text(size = 15),
           panel.grid.major =element_blank(), panel.grid.minor = element_blank())
 }
 
@@ -95,13 +106,13 @@ Table_Quan <- function(dp, year = c(20,25,30,35,40,45)){
     t <- (1:(y*12))/12
     iter <- nrow(dp)
     pt <- data.frame(Portfolio = s[iter,y*12],
-                     Percentile = "Max")
+                     Percentile = "Best")
     for (per in c(0.99,0.9,0.75,0.5,0.25,0.1,0.01)){
       pt <- rbind(pt, data.frame(Portfolio = s[per*iter,y*12], 
                                        Percentile = paste0(per*100, "% Percentile")))
     }
     pt <- rbind(pt, data.frame(Portfolio = s[1,y*12],
-                                     Percentile = "Min"))
+                                     Percentile = "Worst"))
     
     rownames(pt) <- pt$Percentile
     pt <- pt[1]
@@ -160,7 +171,7 @@ Tab_Years <- function(dp, year, con=500){
     tab <- rbind(tab,cbind(y,invest))
   }
   colnames(tab) <- c('Time', 'Invested')
-  rownames(tab) <- c('Max',paste0(q*100, "{\\%}"),'Min')
+  rownames(tab) <- c('Best',paste0(q*100, "{\\%}"),'Worst')
   
   return(tab)
 }
@@ -199,17 +210,29 @@ Sim_Table <- function(tabletotle,title){
     ) %>%
     tab_spanner(
       label = "Portfolio Value After:",
-      columns = vars(`20 years`, `25 years`, `30 years`, `35 years`, `40 years`, `45 years`)
+      columns = vars(`20 years`,`25 years`, `30 years`, `35 years`, `40 years`, `45 years`)
     ) %>%
     tab_spanner(
       label = "To Reach $1M:",
       columns = vars(`Time`, `Invested`)
     ) %>%
     fmt_currency(
-      columns = vars(`20 years`, `25 years`, `30 years`, `35 years`, `40 years`, `45 years`, `Invested`),
+      columns = vars(`20 years`,`25 years`, `30 years`, `35 years`, `40 years`, `45 years`, `Invested`),
       currency = "USD",
-      decimals = 0
-    )
+      decimals = 0,
+      suffixing = "k"
+    ) 
+  # for (i in c(20,25,30,35,40,45)){
+  #   t %>%
+  #     tab_style(
+  #       style = cell_fill(color = "lightgreen"),
+  #       locations = cells_body(
+  #         columns = paste0(i, " years"),
+  #         rows = as.symbol(paste0(i, " years"))>= 1000000
+  #       )
+  #     ) 
+  # }
+    
 }
 
 
